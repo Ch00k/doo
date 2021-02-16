@@ -27,7 +27,7 @@ type Comment struct {
 }
 
 func initDB(host, port, username, password, dbname string) (db *gorm.DB, err error) {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", host, port, username, password, dbname)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s TimeZone=Europe/Amsterdam", host, port, username, password, dbname)
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
