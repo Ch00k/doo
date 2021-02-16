@@ -6,11 +6,27 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  DOO_DB_HOST: db
+  DOO_DB_PORT: 5432
+  DOO_DB_USER: doo
+  DOO_DB_PASSWORD: doo
+  DOO_DB_NAME: doo
 
 jobs:
   test:
     runs-on: ubuntu-latest
     name: test
+    services:
+      db:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: ${{ env.DOO_DB_NAME }}
+          POSTGRES_USER: ${{ env.DOO_DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.DOO_DB_PASSWORD }}
+        ports:
+          - 5432:5432
+
     steps:
       - name: checkout
         uses: actions/checkout@v2
