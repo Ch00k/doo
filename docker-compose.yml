@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${DOO_DB_NAME:-doo}
+      - POSTGRES_USER=${DOO_DB_USER:-doo}
+      - POSTGRES_PASSWORD=${DOO_DB_PASSWORD:-doo}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doo"]
+      interval: 1s
+      timeout: 1s
+      retries: 5
+    ports:
+      - 5432:5432
+
+  doo:
+    image: ch00k/doo:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DOO_DB_HOST=db
+      - DOO_DB_PORT=${DOO_DB_PORT:-5432}
+      - DOO_DB_USER=${DOO_DB_USER:-doo}
+      - DOO_DB_PASSWORD=${DOO_DB_PASSWORD:-doo}
+      - DOO_DB_NAME=${DOO_DB_NAME:-doo}
+      - DOO_HTTP_HOST=${DOO_HTTP_HOST:-0.0.0.0}
+      - DOO_HTTP_PORT=${DOO_HTTP_PORT:-8080}
+    ports:
+      - 8080:8080
