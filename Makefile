@@ -12,6 +12,9 @@ DOCKER_IMAGE_NAME := ch00k/doo
 build:
 	go build
 
+test:
+	go test -v
+
 run: build
 	./doo
 
