@@ -46,14 +46,12 @@ func getEnvVar(name, default_ string) string {
 	}
 }
 
-func main() {
+func setupDB() *gorm.DB {
 	dbHost := getEnvVar("DOO_DB_HOST", "localhost")
 	dbPort := getEnvVar("DOO_DB_PORT", "5432")
 	dbUser := getEnvVar("DOO_DB_USER", "doo")
 	dbPass := getEnvVar("DOO_DB_PASSWORD", "doo")
 	dbName := getEnvVar("DOO_DB_NAME", "doo")
-	httpHost := getEnvVar("DOO_HTTP_HOST", "localhost")
-	httpPort := getEnvVar("DOO_HTTP_PORT", "8080")
 
 	db, err := initDB(dbHost, dbPort, dbUser, dbPass, dbName)
 	if err != nil {
@@ -65,11 +63,15 @@ func main() {
 		&Comment{},
 	)
 
+	return db
+}
+
+func setupRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/entries", func(c *gin.Context) {
 		var entries []Entry
-		db.Preload(clause.Associations).Find(&entries)
+		db.Unscoped().Preload(clause.Associations).Find(&entries)
 		c.JSON(http.StatusOK, entries)
 	})
 
@@ -158,5 +160,14 @@ func main() {
 		}
 	})
 
+	return r
+}
+
+func main() {
+	db := setupDB()
+	r := setupRouter(db)
+
+	httpHost := getEnvVar("DOO_HTTP_HOST", "localhost")
+	httpPort := getEnvVar("DOO_HTTP_PORT", "8080")
 	r.Run(fmt.Sprintf("%s:%s", httpHost, httpPort))
 }
