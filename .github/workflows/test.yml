@@ -25,6 +25,7 @@ jobs:
           POSTGRES_USER: ${{ env.DOO_DB_USER }}
           POSTGRES_PASSWORD: ${{ env.DOO_DB_PASSWORD }}
           TZ: Europe/Amsterdam
+          PGTZ: Europe/Amsterdam
         ports:
           - 5432:5432
 
