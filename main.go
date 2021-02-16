@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -10,12 +11,15 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 )
 
+type CompletedAt = sql.NullInt64
+
 type Entry struct {
-	gorm.Model
-	CompletedAt time.Time
+	ID          uint  `gorm:"primarykey"`
+	CreatedAt   int64 `gorm:"autoCreateTime:milli"`
+	UpdatedAt   int64 `gorm:"autoUpdateTime:milli"`
+	CompletedAt CompletedAt
 	Text        string
 	Comments    []Comment
 }
@@ -27,7 +31,7 @@ type Comment struct {
 }
 
 func initDB(host, port, username, password, dbname string) (db *gorm.DB, err error) {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s TimeZone=Europe/Amsterdam", host, port, username, password, dbname)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", host, port, username, password, dbname)
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
