@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-testfixtures/testfixtures/v3"
@@ -17,8 +16,6 @@ import (
 var fixtures *testfixtures.Loader
 var db *gorm.DB
 var r *gin.Engine
-
-var nullTime = gorm.DeletedAt{Valid: false}
 
 func TestMain(m *testing.M) {
 	db = setupDB()
@@ -51,14 +48,6 @@ func prepareTestDatabase() {
 	}
 }
 
-func parseISO8601(t string) time.Time {
-	v, err := time.Parse(time.RFC3339, t)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
 func TestListEntries(t *testing.T) {
 	prepareTestDatabase()
 
@@ -68,14 +57,10 @@ func TestListEntries(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 
-	entry1 := Entry{Text: "wubalubadubdub", Comments: []Comment{}}
-	entry1.Model = gorm.Model{ID: 1, CreatedAt: parseISO8601("2020-12-31T23:59:59+01:00"), UpdatedAt: parseISO8601("2020-12-31T23:59:59+01:00"), DeletedAt: nullTime}
-	entry2 := Entry{Text: "gazorpazorp", CompletedAt: parseISO8601("2021-01-02T23:59:59+01:00"), Comments: []Comment{}}
-	entry2.Model = gorm.Model{ID: 2, CreatedAt: parseISO8601("2021-01-01T23:59:59+01:00"), UpdatedAt: parseISO8601("2021-01-01T23:59:59+01:00"), DeletedAt: nullTime}
-	entry3 := Entry{Text: "foobarbaz", CompletedAt: parseISO8601("2021-01-02T23:59:59+01:00"), Comments: []Comment{}}
-	entry3.Model = gorm.Model{ID: 3, CreatedAt: parseISO8601("2021-01-01T23:59:59+01:00"), UpdatedAt: parseISO8601("2021-01-01T23:59:59+01:00"), DeletedAt: gorm.DeletedAt{Time: parseISO8601("2021-01-03T23:59:59+01:00"), Valid: true}}
+	entry1 := Entry{ID: 1, CreatedAt: 1609459199000, UpdatedAt: 1609459199000, Text: "wubalubadubdub", Comments: []Comment{}}
+	entry2 := Entry{ID: 2, CreatedAt: 1609459299000, UpdatedAt: 1609459299000, CompletedAt: CompletedAt{Int64: 1609459399000, Valid: true}, Text: "gazorpazorp", Comments: []Comment{}}
 
-	expectedBody := []Entry{entry1, entry2, entry3}
+	expectedBody := []Entry{entry1, entry2}
 	var body []Entry
 	_ = json.Unmarshal(w.Body.Bytes(), &body)
 

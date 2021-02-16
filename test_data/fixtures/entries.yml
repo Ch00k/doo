@@ -1,20 +1,11 @@
 - id: 1
-  created_at: 2020-12-31 23:59:59
-  updated_at: 2020-12-31 23:59:59
-  deleted_at: null
+  created_at: 1609459199000
+  updated_at: 1609459199000
   completed_at: null
   text: wubalubadubdub
 
 - id: 2
-  created_at: 2021-01-01 23:59:59
-  updated_at: 2021-01-01 23:59:59
-  deleted_at: null
-  completed_at: 2021-01-02 23:59:59
+  created_at: 1609459299000
+  updated_at: 1609459299000
+  completed_at: 1609459399000
   text: gazorpazorp
-
-- id: 3
-  created_at: 2021-01-01 23:59:59
-  updated_at: 2021-01-01 23:59:59
-  deleted_at: 2021-01-03 23:59:59
-  completed_at: 2021-01-02 23:59:59
-  text: foobarbaz
