@@ -160,7 +160,7 @@ func TestDeleteEntry(t *testing.T) {
 	assert.Len(t, entries, 1)
 }
 
-func TestUpdateEntry(t *testing.T) {
+func TestUpdateEntryExisting(t *testing.T) {
 	prepareTestDatabase()
 
 	w := httptest.NewRecorder()
@@ -177,6 +177,17 @@ func TestUpdateEntry(t *testing.T) {
 		panic("Entry not found in db")
 	}
 	assert.Equal(t, dbEntry, entry)
+}
+
+func TestUpdateEntryNonExistent(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/entries/42", readRequestBody("update_entry.json"))
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
 }
 
 func TestCompleteEntryExisting(t *testing.T) {
@@ -210,7 +221,7 @@ func TestCompleteEntryNonExistent(t *testing.T) {
 	assert.Equal(t, "", w.Body.String())
 }
 
-func TestCreateComment(t *testing.T) {
+func TestCreateCommentExistingEntry(t *testing.T) {
 	prepareTestDatabase()
 
 	w := httptest.NewRecorder()
@@ -229,7 +240,18 @@ func TestCreateComment(t *testing.T) {
 	assert.Equal(t, dbComment, comment)
 }
 
-func TestDeleteComment(t *testing.T) {
+func TestCreateCommentNonExistentEntry(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/entries/42/comment", readRequestBody("create_comment.json"))
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
+}
+
+func TestDeleteCommentExisting(t *testing.T) {
 	prepareTestDatabase()
 
 	w := httptest.NewRecorder()
@@ -242,4 +264,26 @@ func TestDeleteComment(t *testing.T) {
 	var comments []Comment
 	db.Where(&Comment{EntryID: 1}).Find(&comments)
 	assert.Len(t, comments, 1)
+}
+
+func TestDeleteCommentNonExistent(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", "/entries/1/comments/42", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
+}
+
+func TestDeleteCommentNonExistentEntry(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", "/entries/42/comments/1", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
 }

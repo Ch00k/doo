@@ -103,7 +103,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 	r.DELETE("/entries/:id/comments/:cid", func(c *gin.Context) {
 		var entry Entry
-		res := db.First(&entry, c.Param("eid"))
+		res := db.First(&entry, c.Param("id"))
 		if res.RowsAffected < 1 {
 			c.Status(http.StatusNotFound)
 		} else {
