@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -22,6 +23,12 @@ var fixtures *testfixtures.Loader
 var db *gorm.DB
 var r *gin.Engine
 
+func makeRequest(method, path string, body io.Reader) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(method, path, body)
+	r.ServeHTTP(w, req)
+	return w
+}
 func readExpectedResponse(filename string) string {
 	data, err := ioutil.ReadFile(fmt.Sprintf("test_data/responses/%s", filename))
 	if err != nil {
@@ -95,44 +102,28 @@ func prepareTestDatabase() {
 
 func TestListEntries(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/entries", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("GET", "/entries", nil)
 	assert.Equal(t, 200, w.Code)
 	assert.True(t, areEqualJSON(readExpectedResponse("list.json"), w.Body.String()))
 }
 
 func TestGetEntryExisting(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/entries/2", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("GET", "/entries/2", nil)
 	assert.Equal(t, 200, w.Code)
 	assert.True(t, areEqualJSON(readExpectedResponse("get.json"), w.Body.String()))
 }
 
 func TestGetEntryNonExistent(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/entries/42", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("GET", "/entries/42", nil)
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }
 
 func TestCreateEntry(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/entries", readRequestBody("create_entry.json"))
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("POST", "/entries", readRequestBody("create_entry.json"))
 	assert.Equal(t, 201, w.Code)
 
 	var entry, dbEntry Entry
@@ -147,22 +138,14 @@ func TestCreateEntry(t *testing.T) {
 
 func TestCreateEntryTextAbsent(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/entries", bytes.NewBuffer([]byte("{}")))
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("POST", "/entries", bytes.NewBuffer([]byte("{}")))
 	assert.Equal(t, 400, w.Code)
 	assert.Equal(t, "{\"error\":\"Key: 'Entry.Text' Error:Field validation for 'Text' failed on the 'required' tag\"}", w.Body.String())
 }
 
 func TestDeleteEntryExisting(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("DELETE", "/entries/2", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("DELETE", "/entries/2", nil)
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "", w.Body.String())
 
@@ -173,22 +156,14 @@ func TestDeleteEntryExisting(t *testing.T) {
 
 func TestDeleteEntryNonExistent(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("DELETE", "/entries/42", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("DELETE", "/entries/42", nil)
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }
 
 func TestUpdateEntryExisting(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PUT", "/entries/1", readRequestBody("update_entry.json"))
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("PUT", "/entries/1", readRequestBody("update_entry.json"))
 	assert.Equal(t, 200, w.Code)
 
 	var entry, dbEntry Entry
@@ -203,11 +178,7 @@ func TestUpdateEntryExisting(t *testing.T) {
 
 func TestUpdateEntryError(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PUT", "/entries/1", bytes.NewBuffer([]byte("{}")))
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("PUT", "/entries/1", bytes.NewBuffer([]byte("{}")))
 	// This behaviour is debatable. The endpoint could also return a 200. See the TODO in models.go
 	assert.Equal(t, 400, w.Code)
 	assert.Equal(t, "{\"error\":\"Key: 'Entry.Text' Error:Field validation for 'Text' failed on the 'required' tag\"}", w.Body.String())
@@ -215,22 +186,14 @@ func TestUpdateEntryError(t *testing.T) {
 
 func TestUpdateEntryNonExistent(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PUT", "/entries/42", readRequestBody("update_entry.json"))
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("PUT", "/entries/42", readRequestBody("update_entry.json"))
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }
 
 func TestCompleteEntryExisting(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/entries/1/complete", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("POST", "/entries/1/complete", nil)
 	assert.Equal(t, 200, w.Code)
 
 	var entry, dbEntry Entry
@@ -246,22 +209,14 @@ func TestCompleteEntryExisting(t *testing.T) {
 
 func TestCompleteEntryNonExistent(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/entries/42/complete", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("POST", "/entries/42/complete", nil)
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }
 
 func TestCreateCommentExistingEntry(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/entries/2/comment", readRequestBody("create_comment.json"))
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("POST", "/entries/2/comment", readRequestBody("create_comment.json"))
 	assert.Equal(t, 201, w.Code)
 
 	var comment, dbComment Comment
@@ -276,33 +231,21 @@ func TestCreateCommentExistingEntry(t *testing.T) {
 
 func TestCreateCommentNonExistentEntry(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/entries/42/comment", readRequestBody("create_comment.json"))
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("POST", "/entries/42/comment", readRequestBody("create_comment.json"))
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }
 
 func TestCreateCommentTextAbsent(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/entries/2/comment", bytes.NewBuffer([]byte("{}")))
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("POST", "/entries/2/comment", bytes.NewBuffer([]byte("{}")))
 	assert.Equal(t, 400, w.Code)
 	assert.Equal(t, "{\"error\":\"Key: 'Comment.Text' Error:Field validation for 'Text' failed on the 'required' tag\"}", w.Body.String())
 }
 
 func TestDeleteCommentExisting(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("DELETE", "/entries/1/comments/2", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("DELETE", "/entries/1/comments/2", nil)
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "", w.Body.String())
 
@@ -313,22 +256,14 @@ func TestDeleteCommentExisting(t *testing.T) {
 
 func TestDeleteCommentNonExistent(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("DELETE", "/entries/1/comments/42", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("DELETE", "/entries/1/comments/42", nil)
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }
 
 func TestDeleteCommentNonExistentEntry(t *testing.T) {
 	prepareTestDatabase()
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("DELETE", "/entries/42/comments/1", nil)
-	r.ServeHTTP(w, req)
-
+	w := makeRequest("DELETE", "/entries/42/comments/1", nil)
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }
