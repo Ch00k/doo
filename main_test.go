@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -20,12 +21,20 @@ var fixtures *testfixtures.Loader
 var db *gorm.DB
 var r *gin.Engine
 
-func readExpected(filename string) string {
+func readExpectedResponse(filename string) string {
 	data, err := ioutil.ReadFile(fmt.Sprintf("test_data/responses/%s", filename))
 	if err != nil {
 		panic(err)
 	}
 	return string(data)
+}
+
+func readRequestBody(filename string) *bytes.Buffer {
+	data, err := ioutil.ReadFile(fmt.Sprintf("test_data/requests/%s", filename))
+	if err != nil {
+		panic(err)
+	}
+	return bytes.NewBuffer(data)
 }
 
 func areEqualJSON(s1, s2 string) bool {
@@ -84,7 +93,7 @@ func TestListEntries(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
-	assert.True(t, areEqualJSON(readExpected("list.json"), w.Body.String()))
+	assert.True(t, areEqualJSON(readExpectedResponse("list.json"), w.Body.String()))
 }
 
 func TestGetEntryExisting(t *testing.T) {
@@ -95,7 +104,7 @@ func TestGetEntryExisting(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
-	assert.True(t, areEqualJSON(readExpected("get.json"), w.Body.String()))
+	assert.True(t, areEqualJSON(readExpectedResponse("get.json"), w.Body.String()))
 }
 
 func TestGetEntryNonExistent(t *testing.T) {
@@ -107,4 +116,44 @@ func TestGetEntryNonExistent(t *testing.T) {
 
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
+}
+
+func TestCreateEntry(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/entries", readRequestBody("create_entry.json"))
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 201, w.Code)
+	// TODO: Assert respose body
+	//assert.True(t, areEqualJSON(readExpectedResponse("create_entry.json"), w.Body.String()))
+}
+
+func TestDeleteEntry(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", "/entries/2", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "", w.Body.String())
+
+	var entries []Entry
+	db.Unscoped().Find(&entries)
+	assert.Len(t, entries, 1)
+}
+
+func TestUpdateEntry(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/entries/1", readRequestBody("update_entry.json"))
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	fmt.Println(w.Body.String())
+	// TODO: Assert respose body
+	//assert.True(t, areEqualJSON(readExpectedResponse("create_entry.json"), w.Body.String()))
 }

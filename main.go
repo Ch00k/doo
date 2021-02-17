@@ -131,7 +131,8 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 		}
 		res := db.Create(&entry)
 		if res.Error == nil {
-			c.Status(http.StatusCreated)
+			// TODO: This returns Comments as nil instead of []
+			c.JSON(http.StatusCreated, entry)
 		} else {
 			c.Status(http.StatusInternalServerError)
 		}
@@ -149,6 +150,7 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 				return
 			}
 			db.Model(&entry).Updates(updatedEntry)
+			c.JSON(http.StatusOK, entry)
 		}
 	})
 
