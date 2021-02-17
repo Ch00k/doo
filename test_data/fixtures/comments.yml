@@ -1,0 +1,11 @@
+- id: 1
+  created_at: 1609459199000
+  updated_at: 1609459199000
+  text: comment 1
+  entry_id: 1
+
+- id: 2
+  created_at: 1609459299000
+  updated_at: 1609459399000
+  text: comment 2
+  entry_id: 1

@@ -51,7 +51,14 @@ func areEqualJSON(s1, s2 string) bool {
 		panic(err)
 	}
 
-	return reflect.DeepEqual(j1, j2)
+	areEqual := reflect.DeepEqual(j1, j2)
+	if areEqual {
+		return true
+	}
+	fmt.Println("JSON objects are not equal")
+	fmt.Println(j1)
+	fmt.Println(j2)
+	return false
 }
 
 func TestMain(m *testing.M) {
@@ -141,7 +148,7 @@ func TestDeleteEntry(t *testing.T) {
 	assert.Equal(t, "", w.Body.String())
 
 	var entries []Entry
-	db.Unscoped().Find(&entries)
+	db.Find(&entries)
 	assert.Len(t, entries, 1)
 }
 
@@ -156,4 +163,32 @@ func TestUpdateEntry(t *testing.T) {
 	fmt.Println(w.Body.String())
 	// TODO: Assert respose body
 	//assert.True(t, areEqualJSON(readExpectedResponse("create_entry.json"), w.Body.String()))
+}
+
+func TestCreateComment(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/entries/2/comment", readRequestBody("create_comment.json"))
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 201, w.Code)
+	fmt.Println(w.Body.String())
+	// TODO: Assert respose body
+	//assert.True(t, areEqualJSON(readExpectedResponse("create_entry.json"), w.Body.String()))
+}
+
+func TestDeleteComment(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", "/entries/1/comments/2", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "", w.Body.String())
+
+	var comments []Comment
+	db.Where(&Comment{EntryID: 1}).Find(&comments)
+	assert.Len(t, comments, 1)
 }
