@@ -179,7 +179,7 @@ func TestUpdateEntry(t *testing.T) {
 	assert.Equal(t, dbEntry, entry)
 }
 
-func TestCompleteEntry(t *testing.T) {
+func TestCompleteEntryExisting(t *testing.T) {
 	prepareTestDatabase()
 
 	w := httptest.NewRecorder()
@@ -197,6 +197,17 @@ func TestCompleteEntry(t *testing.T) {
 	}
 	assert.Equal(t, dbEntry, entry)
 	assert.NotNil(t, dbEntry.CompletedAt)
+}
+
+func TestCompleteEntryNonExistent(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/entries/42/complete", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
 }
 
 func TestCreateComment(t *testing.T) {
