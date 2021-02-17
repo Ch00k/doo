@@ -62,7 +62,7 @@ func areEqualJSON(s1, s2 string) bool {
 }
 
 func TestMain(m *testing.M) {
-	db = setupDB()
+	db = SetupDB()
 
 	var err error
 
@@ -81,7 +81,7 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	r = setupRouter(db)
+	r = SetupRouter(db)
 	os.Exit(m.Run())
 
 }
