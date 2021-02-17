@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"net/http"
+	"time"
 )
 
 func SetupRouter(db *gorm.DB) *gin.Engine {
@@ -84,6 +85,17 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 			} else {
 				c.Status(http.StatusInternalServerError)
 			}
+		}
+	})
+
+	r.POST("/entries/:id/complete", func(c *gin.Context) {
+		var entry Entry
+		res := db.Preload(clause.Associations).First(&entry, c.Param("id"))
+		if res.RowsAffected < 1 {
+			c.Status(http.StatusNotFound)
+		} else {
+			db.Model(&entry).Update("completed_at", time.Now().Unix())
+			c.JSON(http.StatusOK, entry)
 		}
 	})
 

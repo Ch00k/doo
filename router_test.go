@@ -15,6 +15,7 @@ import (
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var fixtures *testfixtures.Loader
@@ -176,6 +177,37 @@ func TestUpdateEntry(t *testing.T) {
 		panic("Entry not found in db")
 	}
 	assert.Equal(t, dbEntry, entry)
+}
+
+func TestCompleteEntryExisting(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/entries/1/complete", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+
+	var entry, dbEntry Entry
+
+	json.Unmarshal(w.Body.Bytes(), &entry)
+	res := db.Preload(clause.Associations).First(&dbEntry, 1)
+	if res.RowsAffected < 1 {
+		panic("Entry not found in db")
+	}
+	assert.Equal(t, dbEntry, entry)
+	assert.NotNil(t, dbEntry.CompletedAt)
+}
+
+func TestCompleteEntryNonExistent(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/entries/42/complete", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
 }
 
 func TestCreateComment(t *testing.T) {
