@@ -13,7 +13,7 @@ build:
 	go build
 
 test:
-	go test -v
+	go test -v ./...
 
 coverage:
 	go test -coverprofile=coverage.txt -covermode=atomic
