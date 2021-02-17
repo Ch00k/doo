@@ -15,14 +15,17 @@ type ModelBase struct {
 type Entry struct {
 	ModelBase
 	CompletedAt CompletedAt
-	Text        string
-	Comments    []Comment
+	// TODO: This means that on PUT this field will be required too.
+	// It is ok now that this is the only field that can be updated,
+	// but this needs a custom validator when more fields are added
+	Text     string `binding:"required"`
+	Comments []Comment
 }
 
 type Comment struct {
 	ModelBase
 	EntryID uint
-	Text    string
+	Text    string `binding:"required"`
 }
 
 type CompletedAt sql.NullInt64

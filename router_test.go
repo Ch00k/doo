@@ -145,7 +145,18 @@ func TestCreateEntry(t *testing.T) {
 	assert.Equal(t, dbEntry, entry)
 }
 
-func TestDeleteEntry(t *testing.T) {
+func TestCreateEntryTextAbsent(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/entries", bytes.NewBuffer([]byte("{}")))
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	assert.Equal(t, "{\"error\":\"Key: 'Entry.Text' Error:Field validation for 'Text' failed on the 'required' tag\"}", w.Body.String())
+}
+
+func TestDeleteEntryExisting(t *testing.T) {
 	prepareTestDatabase()
 
 	w := httptest.NewRecorder()
@@ -158,6 +169,17 @@ func TestDeleteEntry(t *testing.T) {
 	var entries []Entry
 	db.Find(&entries)
 	assert.Len(t, entries, 1)
+}
+
+func TestDeleteEntryNonExistent(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", "/entries/42", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
 }
 
 func TestUpdateEntryExisting(t *testing.T) {
@@ -177,6 +199,18 @@ func TestUpdateEntryExisting(t *testing.T) {
 		panic("Entry not found in db")
 	}
 	assert.Equal(t, dbEntry, entry)
+}
+
+func TestUpdateEntryError(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/entries/1", bytes.NewBuffer([]byte("{}")))
+	r.ServeHTTP(w, req)
+
+	// This behaviour is debatable. The endpoint could also return a 200. See the TODO in models.go
+	assert.Equal(t, 400, w.Code)
+	assert.Equal(t, "{\"error\":\"Key: 'Entry.Text' Error:Field validation for 'Text' failed on the 'required' tag\"}", w.Body.String())
 }
 
 func TestUpdateEntryNonExistent(t *testing.T) {
@@ -249,6 +283,17 @@ func TestCreateCommentNonExistentEntry(t *testing.T) {
 
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
+}
+
+func TestCreateCommentTextAbsent(t *testing.T) {
+	prepareTestDatabase()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/entries/2/comment", bytes.NewBuffer([]byte("{}")))
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	assert.Equal(t, "{\"error\":\"Key: 'Comment.Text' Error:Field validation for 'Text' failed on the 'required' tag\"}", w.Body.String())
 }
 
 func TestDeleteCommentExisting(t *testing.T) {
