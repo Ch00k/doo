@@ -1,6 +1,21 @@
 [
     {
-        "Comments": [],
+        "Comments": [
+            {
+                "CreatedAt": 1609459199000,
+                "EntryID": 1,
+                "ID": 1,
+                "Text": "comment 1",
+                "UpdatedAt": 1609459199000
+            },
+            {
+                "CreatedAt": 1609459299000,
+                "EntryID": 1,
+                "ID": 2,
+                "Text": "comment 2",
+                "UpdatedAt": 1609459399000
+            }
+        ],
         "CompletedAt": null,
         "CreatedAt": 1609459199000,
         "ID": 1,

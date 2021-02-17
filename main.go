@@ -49,17 +49,21 @@ func (n *CompletedAt) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+type ModelBase struct {
+	ID        uint  `gorm:"primarykey"`
+	CreatedAt int64 `gorm:"autoCreateTime:milli"`
+	UpdatedAt int64 `gorm:"autoUpdateTime:milli"`
+}
+
 type Entry struct {
-	ID          uint  `gorm:"primarykey"`
-	CreatedAt   int64 `gorm:"autoCreateTime:milli"`
-	UpdatedAt   int64 `gorm:"autoUpdateTime:milli"`
+	ModelBase
 	CompletedAt CompletedAt
 	Text        string
 	Comments    []Comment
 }
 
 type Comment struct {
-	gorm.Model
+	ModelBase
 	EntryID uint
 	Text    string
 }
@@ -109,7 +113,7 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 
 	r.GET("/entries", func(c *gin.Context) {
 		var entries []Entry
-		db.Unscoped().Preload(clause.Associations).Find(&entries)
+		db.Preload(clause.Associations).Find(&entries)
 		c.JSON(http.StatusOK, entries)
 	})
 
@@ -131,7 +135,8 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 		}
 		res := db.Create(&entry)
 		if res.Error == nil {
-			c.Status(http.StatusCreated)
+			// TODO: This returns Comments as nil instead of []
+			c.JSON(http.StatusCreated, entry)
 		} else {
 			c.Status(http.StatusInternalServerError)
 		}
@@ -149,6 +154,7 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 				return
 			}
 			db.Model(&entry).Updates(updatedEntry)
+			c.JSON(http.StatusOK, entry)
 		}
 	})
 
@@ -175,12 +181,14 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 		} else {
 			err := db.Model(&entry).Association("Comments").Append(&comment)
 			if err == nil {
-				c.Status(http.StatusCreated)
+				c.JSON(http.StatusCreated, comment)
 			} else {
 				c.Status(http.StatusInternalServerError)
 			}
 		}
 	})
+
+	// TODO: Update comments?
 
 	r.DELETE("/entries/:id/comments/:cid", func(c *gin.Context) {
 		var entry Entry
