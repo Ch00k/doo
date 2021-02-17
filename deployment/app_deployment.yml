@@ -13,7 +13,7 @@ spec:
         app: app
     spec:
       containers:
-        - image: ch00k/doo:latest
+        - image: ch00k/doo:0.1.0
           name: go-url-shortener
           env:
             - name: DOO_DB_HOST
