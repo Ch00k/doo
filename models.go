@@ -20,12 +20,18 @@ type Entry struct {
 	// but this needs a custom validator when more fields are added
 	Text     string `binding:"required"`
 	Comments []Comment
+	Tags     []Tag `gorm:"many2many:entry_tags;"`
 }
 
 type Comment struct {
 	ModelBase
 	EntryID uint
 	Text    string `binding:"required"`
+}
+
+type Tag struct {
+	Name    string  `gorm:"primarykey" binding:"required"`
+	Entries []Entry `gorm:"many2many:entry_tags;"`
 }
 
 type CompletedAt sql.NullInt64

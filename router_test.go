@@ -104,14 +104,14 @@ func TestListEntries(t *testing.T) {
 	prepareTestDatabase()
 	w := makeRequest("GET", "/entries", nil)
 	assert.Equal(t, 200, w.Code)
-	assert.True(t, areEqualJSON(readExpectedResponse("list.json"), w.Body.String()))
+	assert.True(t, areEqualJSON(readExpectedResponse("list_entries.json"), w.Body.String()))
 }
 
 func TestGetEntryExisting(t *testing.T) {
 	prepareTestDatabase()
 	w := makeRequest("GET", "/entries/2", nil)
 	assert.Equal(t, 200, w.Code)
-	assert.True(t, areEqualJSON(readExpectedResponse("get.json"), w.Body.String()))
+	assert.True(t, areEqualJSON(readExpectedResponse("get_entry.json"), w.Body.String()))
 }
 
 func TestGetEntryNonExistent(t *testing.T) {
@@ -136,6 +136,36 @@ func TestCreateEntry(t *testing.T) {
 	assert.Equal(t, dbEntry, entry)
 }
 
+func TestCreateEntryWithNewTags(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("POST", "/entries", readRequestBody("create_entry_with_new_tags.json"))
+	assert.Equal(t, 201, w.Code)
+
+	var entry, dbEntry Entry
+
+	json.Unmarshal(w.Body.Bytes(), &entry)
+	res := db.Preload("Tags").First(&dbEntry, entry.ID)
+	if res.RowsAffected < 1 {
+		panic("Entry not found in db")
+	}
+	assert.Equal(t, dbEntry, entry)
+}
+
+func TestCreateEntryWithExistingTags(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("POST", "/entries", readRequestBody("create_entry_with_existing_tags.json"))
+	assert.Equal(t, 201, w.Code)
+
+	var entry, dbEntry Entry
+
+	json.Unmarshal(w.Body.Bytes(), &entry)
+	res := db.Preload("Tags").First(&dbEntry, entry.ID)
+	if res.RowsAffected < 1 {
+		panic("Entry not found in db")
+	}
+	assert.Equal(t, dbEntry, entry)
+}
+
 func TestCreateEntryTextAbsent(t *testing.T) {
 	prepareTestDatabase()
 	w := makeRequest("POST", "/entries", bytes.NewBuffer([]byte("{}")))
@@ -151,7 +181,7 @@ func TestDeleteEntryExisting(t *testing.T) {
 
 	var entries []Entry
 	db.Find(&entries)
-	assert.Len(t, entries, 1)
+	assert.Len(t, entries, 2)
 }
 
 func TestDeleteEntryNonExistent(t *testing.T) {
@@ -264,6 +294,93 @@ func TestDeleteCommentNonExistent(t *testing.T) {
 func TestDeleteCommentNonExistentEntry(t *testing.T) {
 	prepareTestDatabase()
 	w := makeRequest("DELETE", "/entries/42/comments/1", nil)
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
+}
+
+func TestListTags(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("GET", "/tags", nil)
+	assert.Equal(t, 200, w.Code)
+	assert.True(t, areEqualJSON(readExpectedResponse("list_tags.json"), w.Body.String()))
+}
+
+func TestGetTagExisting(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("GET", "/tags/food", nil)
+	assert.Equal(t, 200, w.Code)
+	assert.True(t, areEqualJSON(readExpectedResponse("get_tag.json"), w.Body.String()))
+}
+
+func TestGetTagNonExistent(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("GET", "/tags/space", nil)
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
+}
+
+func TestTagEntryWithExistingTag(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("POST", "/entries/2/tag", readRequestBody("tag_entry_with_existing_tag.json"))
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "", w.Body.String())
+
+	var dbEntry Entry
+
+	res := db.Preload("Tags").First(&dbEntry, 2)
+	if res.RowsAffected < 1 {
+		panic("Entry not found in db")
+	}
+	assert.Equal(t, dbEntry.Tags, []Tag{{Name: "family"}})
+}
+
+func TestTagEntryWithNewTag(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("POST", "/entries/2/tag", readRequestBody("tag_entry_with_new_tag.json"))
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "", w.Body.String())
+
+	var dbEntry Entry
+
+	res := db.Preload("Tags").First(&dbEntry, 2)
+	if res.RowsAffected < 1 {
+		panic("Entry not found in db")
+	}
+	assert.Equal(t, dbEntry.Tags, []Tag{{Name: "C137"}})
+}
+
+func TestTagEntryNonExistentEntry(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("POST", "/entries/42/tag", readRequestBody("tag_entry_with_new_tag.json"))
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
+}
+
+func TestUntagEntry(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("DELETE", "/entries/3/tags/food", nil)
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "", w.Body.String())
+
+	var dbEntry Entry
+
+	res := db.Preload("Tags").First(&dbEntry, 2)
+	if res.RowsAffected < 1 {
+		panic("Entry not found in db")
+	}
+	assert.Equal(t, dbEntry.Tags, []Tag{})
+}
+
+func TestUntagEntryNonExistentEntry(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("DELETE", "/entries/42/tags/food", nil)
+	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, "", w.Body.String())
+}
+
+func TestUntagEntryNonExistentTag(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("DELETE", "/entries/3/tags/blah", nil)
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }

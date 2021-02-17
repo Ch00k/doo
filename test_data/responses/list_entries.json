@@ -19,6 +19,16 @@
         "CompletedAt": null,
         "CreatedAt": 1609459199000,
         "ID": 1,
+        "Tags": [
+            {
+                "Entries": null,
+                "Name": "food"
+            },
+            {
+                "Entries": null,
+                "Name": "family"
+            }
+        ],
         "Text": "wubalubadubdub",
         "UpdatedAt": 1609459199000
     },
@@ -27,7 +37,22 @@
         "CompletedAt": 1609459399000,
         "CreatedAt": 1609459299000,
         "ID": 2,
+        "Tags": [],
         "Text": "gazorpazorp",
         "UpdatedAt": 1609459299000
+    },
+    {
+        "Comments": [],
+        "CompletedAt": null,
+        "CreatedAt": 1609459299001,
+        "ID": 3,
+        "Tags": [
+            {
+                "Entries": null,
+                "Name": "food"
+            }
+        ],
+        "Text": "Buy szechuan sauce",
+        "UpdatedAt": 1609459299001
     }
 ]

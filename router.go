@@ -117,5 +117,57 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		}
 	})
 
+	r.GET("/tags", func(c *gin.Context) {
+		var tags []Tag
+		db.Preload(clause.Associations).Find(&tags)
+		c.JSON(http.StatusOK, tags)
+	})
+
+	r.GET("/tags/:name", func(c *gin.Context) {
+		var tag Tag
+		res := db.Preload(clause.Associations).First(&tag, "name = ?", c.Param("name"))
+		if res.RowsAffected < 1 {
+			c.Status(http.StatusNotFound)
+		} else {
+			c.JSON(http.StatusOK, tag)
+		}
+	})
+
+	r.POST("/entries/:id/tag", func(c *gin.Context) {
+		var tags []Tag
+		var entry Entry
+		if err := c.ShouldBindJSON(&tags); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		res := db.First(&entry, c.Param("id"))
+		if res.RowsAffected < 1 {
+			c.Status(http.StatusNotFound)
+		} else {
+			err := db.Model(&entry).Association("Tags").Append(&tags)
+			if err == nil {
+				c.Status(http.StatusOK)
+			} else {
+				c.Status(http.StatusInternalServerError)
+			}
+		}
+	})
+
+	r.DELETE("/entries/:id/tags/:name", func(c *gin.Context) {
+		var entry Entry
+		res := db.First(&entry, c.Param("id"))
+		if res.RowsAffected < 1 {
+			c.Status(http.StatusNotFound)
+		} else {
+			var tag Tag
+			res := db.First(&tag, "name = ?", c.Param("name"))
+			if res.RowsAffected < 1 {
+				c.Status(http.StatusNotFound)
+			} else {
+				db.Model(&entry).Association("Tags").Delete(&tag)
+			}
+		}
+	})
+
 	return r
 }
