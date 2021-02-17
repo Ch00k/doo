@@ -356,6 +356,13 @@ func TestTagEntryNonExistentEntry(t *testing.T) {
 	assert.Equal(t, "", w.Body.String())
 }
 
+func TestTagEntryError(t *testing.T) {
+	prepareTestDatabase()
+	w := makeRequest("POST", "/entries/42/tag", bytes.NewBuffer([]byte("{}")))
+	assert.Equal(t, 400, w.Code)
+	assert.Equal(t, "{\"error\":\"json: cannot unmarshal object into Go value of type []main.Tag\"}", w.Body.String())
+}
+
 func TestUntagEntry(t *testing.T) {
 	prepareTestDatabase()
 	w := makeRequest("DELETE", "/entries/3/tags/food", nil)
