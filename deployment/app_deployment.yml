@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - image: ch00k/doo:latest
+          name: go-url-shortener
+          env:
+            - name: DOO_DB_HOST
+              value: db
+            - name: DOO_DB_PORT
+              value: "5432"
+            - name: DOO_DB_USER
+              value: doo
+            - name: DOO_DB_PASSWORD
+              value: doo
+            - name: DOO_DB_NAME
+              value: doo
+            - name: DOO_HTTP_HOST
+              value: 0.0.0.0
+            - name: DOO_HTTP_PORT
+              value: "8080"
+          ports:
+            - containerPort: 8080
