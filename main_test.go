@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +19,31 @@ import (
 var fixtures *testfixtures.Loader
 var db *gorm.DB
 var r *gin.Engine
+
+func readExpected(filename string) string {
+	data, err := ioutil.ReadFile(fmt.Sprintf("test_data/responses/%s", filename))
+	if err != nil {
+		panic(err)
+	}
+	return string(data)
+}
+
+func areEqualJSON(s1, s2 string) bool {
+	var j1 interface{}
+	var j2 interface{}
+
+	var err error
+	err = json.Unmarshal([]byte(s1), &j1)
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal([]byte(s2), &j2)
+	if err != nil {
+		panic(err)
+	}
+
+	return reflect.DeepEqual(j1, j2)
+}
 
 func TestMain(m *testing.M) {
 	db = setupDB()
@@ -56,27 +84,19 @@ func TestListEntries(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
-
-	entry1 := Entry{ID: 1, CreatedAt: 1609459199000, UpdatedAt: 1609459199000, Text: "wubalubadubdub", Comments: []Comment{}}
-	entry2 := Entry{ID: 2, CreatedAt: 1609459299000, UpdatedAt: 1609459299000, CompletedAt: CompletedAt{Int64: 1609459399000, Valid: true}, Text: "gazorpazorp", Comments: []Comment{}}
-
-	expectedBody := []Entry{entry1, entry2}
-	var body []Entry
-	_ = json.Unmarshal(w.Body.Bytes(), &body)
-
-	assert.Equal(t, expectedBody, body)
+	assert.True(t, areEqualJSON(readExpected("list.json"), w.Body.String()))
 }
 
-//func TestGetEntryExisting(t *testing.T) {
-//    prepareTestDatabase()
+func TestGetEntryExisting(t *testing.T) {
+	prepareTestDatabase()
 
-//    w := httptest.NewRecorder()
-//    req, _ := http.NewRequest("GET", "/entries/1", nil)
-//    r.ServeHTTP(w, req)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/entries/2", nil)
+	r.ServeHTTP(w, req)
 
-//    assert.Equal(t, 200, w.Code)
-//    assert.Equal(t, "[]", w.Body.String())
-//}
+	assert.Equal(t, 200, w.Code)
+	assert.True(t, areEqualJSON(readExpected("get.json"), w.Body.String()))
+}
 
 func TestGetEntryNonExistent(t *testing.T) {
 	prepareTestDatabase()
