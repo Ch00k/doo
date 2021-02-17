@@ -21,7 +21,7 @@ coverage:
 run: build
 	./doo
 
-build_docker_image: build
+build_docker_image:
 	docker build -t ${DOCKER_IMAGE_NAME}:latest .
 
 startdb:
