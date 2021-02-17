@@ -2,7 +2,7 @@ version: '3'
 
 services:
   db:
-    image: postgres:latest
+    image: postgres:13.2
     environment:
       - POSTGRES_DB=${DOO_DB_NAME:-doo}
       - POSTGRES_USER=${DOO_DB_USER:-doo}
