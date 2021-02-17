@@ -15,8 +15,8 @@ type ModelBase struct {
 type Entry struct {
 	ModelBase
 	CompletedAt CompletedAt
-	// TODO: This means that on PUT this will be required too.
-	// It is ok now that this is the only field that cane be updated,
+	// TODO: This means that on PUT this field will be required too.
+	// It is ok now that this is the only field that can be updated,
 	// but this needs a custom validator when more fields are added
 	Text     string `binding:"required"`
 	Comments []Comment
