@@ -25,7 +25,16 @@ build_docker_image: build
 	docker build -t ${DOCKER_IMAGE_NAME}:latest .
 
 startdb:
-	docker-compose up db
+	docker-compose up -d db
 
-stopdb:
-	docker-compose down db
+stop:
+	docker-compose down
+
+startall:
+	docker-compose up -d
+
+deploy_k8s:
+	kubectl apply -f deployment/
+
+destroy_k8s:
+	kubectl delete -f deployment/
