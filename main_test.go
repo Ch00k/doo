@@ -133,8 +133,15 @@ func TestCreateEntry(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 201, w.Code)
-	// TODO: Assert respose body
-	//assert.True(t, areEqualJSON(readExpectedResponse("create_entry.json"), w.Body.String()))
+
+	var entry, dbEntry Entry
+
+	json.Unmarshal(w.Body.Bytes(), &entry)
+	res := db.First(&dbEntry, entry.ID)
+	if res.RowsAffected < 1 {
+		panic("Entry not found in db")
+	}
+	assert.Equal(t, dbEntry, entry)
 }
 
 func TestDeleteEntry(t *testing.T) {
@@ -160,9 +167,15 @@ func TestUpdateEntry(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
-	fmt.Println(w.Body.String())
-	// TODO: Assert respose body
-	//assert.True(t, areEqualJSON(readExpectedResponse("create_entry.json"), w.Body.String()))
+
+	var entry, dbEntry Entry
+
+	json.Unmarshal(w.Body.Bytes(), &entry)
+	res := db.First(&dbEntry, entry.ID)
+	if res.RowsAffected < 1 {
+		panic("Entry not found in db")
+	}
+	assert.Equal(t, dbEntry, entry)
 }
 
 func TestCreateComment(t *testing.T) {
@@ -173,9 +186,15 @@ func TestCreateComment(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 201, w.Code)
-	fmt.Println(w.Body.String())
-	// TODO: Assert respose body
-	//assert.True(t, areEqualJSON(readExpectedResponse("create_entry.json"), w.Body.String()))
+
+	var comment, dbComment Comment
+
+	json.Unmarshal(w.Body.Bytes(), &comment)
+	res := db.First(&dbComment, comment.ID)
+	if res.RowsAffected < 1 {
+		panic("Entry not found in db")
+	}
+	assert.Equal(t, dbComment, comment)
 }
 
 func TestDeleteComment(t *testing.T) {
