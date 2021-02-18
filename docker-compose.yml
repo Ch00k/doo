@@ -16,7 +16,7 @@ services:
       - 5432:5432
 
   doo:
-    image: ch00k/doo:latest
+    image: ch00k/doo:0.1.0
     depends_on:
       db:
         condition: service_healthy
