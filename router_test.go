@@ -19,9 +19,11 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-var fixtures *testfixtures.Loader
-var db *gorm.DB
-var r *gin.Engine
+var (
+	fixtures *testfixtures.Loader
+	db       *gorm.DB
+	r        *gin.Engine
+)
 
 func makeRequest(method, path string, body io.Reader) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
@@ -29,6 +31,7 @@ func makeRequest(method, path string, body io.Reader) *httptest.ResponseRecorder
 	r.ServeHTTP(w, req)
 	return w
 }
+
 func readExpectedResponse(filename string) string {
 	data, err := ioutil.ReadFile(fmt.Sprintf("test_data/responses/%s", filename))
 	if err != nil {
@@ -91,7 +94,6 @@ func TestMain(m *testing.M) {
 
 	r = SetupRouter(db)
 	os.Exit(m.Run())
-
 }
 
 func prepareTestDatabase() {
