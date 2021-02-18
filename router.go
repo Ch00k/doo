@@ -1,11 +1,12 @@
 package main
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"net/http"
-	"time"
 )
 
 func SetupRouter(db *gorm.DB) *gin.Engine {
