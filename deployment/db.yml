@@ -24,3 +24,15 @@ spec:
               value: doo
             - name: POSTGRES_PASSWORD
               value: doo
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  ports:
+  - port: 5432
+  selector:
+    app: db
