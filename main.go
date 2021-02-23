@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 func main() {
 	db := SetupDB()
@@ -8,5 +11,9 @@ func main() {
 
 	httpHost := GetEnvVar("DOO_HTTP_HOST", "localhost")
 	httpPort := GetEnvVar("DOO_HTTP_PORT", "8080")
-	r.Run(fmt.Sprintf("%s:%s", httpHost, httpPort))
+
+	err := r.Run(fmt.Sprintf("%s:%s", httpHost, httpPort))
+	if err != nil {
+		log.Fatal(err)
+	}
 }

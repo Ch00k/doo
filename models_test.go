@@ -31,12 +31,18 @@ func TestMarshalCompletedAtNotNull(t *testing.T) {
 
 func TestUnmarshalCompletedAtNull(t *testing.T) {
 	var s TestStruct
-	json.Unmarshal([]byte("{\"CompletedAt\":null}"), &s)
+	err := json.Unmarshal([]byte("{\"CompletedAt\":null}"), &s)
+	if err != nil {
+		panic(err)
+	}
 	assert.Equal(t, TestStruct{}, s)
 }
 
 func TestUnmarshalCompletedAtnotNull(t *testing.T) {
 	var s TestStruct
-	json.Unmarshal([]byte("{\"CompletedAt\":123456789}"), &s)
+	err := json.Unmarshal([]byte("{\"CompletedAt\":123456789}"), &s)
+	if err != nil {
+		panic(err)
+	}
 	assert.Equal(t, TestStruct{CompletedAt: CompletedAt{Int64: 123456789, Valid: true}}, s)
 }

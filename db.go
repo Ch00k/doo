@@ -33,10 +33,13 @@ func SetupDB() *gorm.DB {
 		log.Fatal(err)
 	}
 
-	db.AutoMigrate(
+	err = db.AutoMigrate(
 		&Entry{},
 		&Comment{},
 	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return db
 }
