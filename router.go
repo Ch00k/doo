@@ -165,7 +165,12 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 			if res.RowsAffected < 1 {
 				c.Status(http.StatusNotFound)
 			} else {
-				db.Model(&entry).Association("Tags").Delete(&tag)
+				err := db.Model(&entry).Association("Tags").Delete(&tag)
+				if err == nil {
+					c.Status(http.StatusOK)
+				} else {
+					c.Status(http.StatusInternalServerError)
+				}
 			}
 		}
 	})

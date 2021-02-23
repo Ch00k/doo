@@ -130,7 +130,10 @@ func TestCreateEntry(t *testing.T) {
 
 	var entry, dbEntry Entry
 
-	json.Unmarshal(w.Body.Bytes(), &entry)
+	err := json.Unmarshal(w.Body.Bytes(), &entry)
+	if err != nil {
+		panic(err)
+	}
 	res := db.First(&dbEntry, entry.ID)
 	if res.RowsAffected < 1 {
 		panic("Entry not found in db")
@@ -145,7 +148,10 @@ func TestCreateEntryWithNewTags(t *testing.T) {
 
 	var entry, dbEntry Entry
 
-	json.Unmarshal(w.Body.Bytes(), &entry)
+	err := json.Unmarshal(w.Body.Bytes(), &entry)
+	if err != nil {
+		panic(err)
+	}
 	res := db.Preload("Tags").First(&dbEntry, entry.ID)
 	if res.RowsAffected < 1 {
 		panic("Entry not found in db")
@@ -160,7 +166,10 @@ func TestCreateEntryWithExistingTags(t *testing.T) {
 
 	var entry, dbEntry Entry
 
-	json.Unmarshal(w.Body.Bytes(), &entry)
+	err := json.Unmarshal(w.Body.Bytes(), &entry)
+	if err != nil {
+		panic(err)
+	}
 	res := db.Preload("Tags").First(&dbEntry, entry.ID)
 	if res.RowsAffected < 1 {
 		panic("Entry not found in db")
@@ -200,7 +209,10 @@ func TestUpdateEntryExisting(t *testing.T) {
 
 	var entry, dbEntry Entry
 
-	json.Unmarshal(w.Body.Bytes(), &entry)
+	err := json.Unmarshal(w.Body.Bytes(), &entry)
+	if err != nil {
+		panic(err)
+	}
 	res := db.First(&dbEntry, entry.ID)
 	if res.RowsAffected < 1 {
 		panic("Entry not found in db")
@@ -230,7 +242,10 @@ func TestCompleteEntryExisting(t *testing.T) {
 
 	var entry, dbEntry Entry
 
-	json.Unmarshal(w.Body.Bytes(), &entry)
+	err := json.Unmarshal(w.Body.Bytes(), &entry)
+	if err != nil {
+		panic(err)
+	}
 	res := db.Preload(clause.Associations).First(&dbEntry, 1)
 	if res.RowsAffected < 1 {
 		panic("Entry not found in db")
@@ -253,7 +268,10 @@ func TestCreateCommentExistingEntry(t *testing.T) {
 
 	var comment, dbComment Comment
 
-	json.Unmarshal(w.Body.Bytes(), &comment)
+	err := json.Unmarshal(w.Body.Bytes(), &comment)
+	if err != nil {
+		panic(err)
+	}
 	res := db.First(&dbComment, comment.ID)
 	if res.RowsAffected < 1 {
 		panic("Entry not found in db")
