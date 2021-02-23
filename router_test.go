@@ -248,7 +248,7 @@ func TestCompleteEntryNonExistent(t *testing.T) {
 
 func TestCreateCommentExistingEntry(t *testing.T) {
 	prepareTestDatabase()
-	w := makeRequest("POST", "/entries/2/comment", readRequestBody("create_comment.json"))
+	w := makeRequest("POST", "/entries/2/comments", readRequestBody("create_comment.json"))
 	assert.Equal(t, 201, w.Code)
 
 	var comment, dbComment Comment
@@ -263,14 +263,14 @@ func TestCreateCommentExistingEntry(t *testing.T) {
 
 func TestCreateCommentNonExistentEntry(t *testing.T) {
 	prepareTestDatabase()
-	w := makeRequest("POST", "/entries/42/comment", readRequestBody("create_comment.json"))
+	w := makeRequest("POST", "/entries/42/comments", readRequestBody("create_comment.json"))
 	assert.Equal(t, 404, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }
 
 func TestCreateCommentTextAbsent(t *testing.T) {
 	prepareTestDatabase()
-	w := makeRequest("POST", "/entries/2/comment", bytes.NewBuffer([]byte("{}")))
+	w := makeRequest("POST", "/entries/2/comments", bytes.NewBuffer([]byte("{}")))
 	assert.Equal(t, 400, w.Code)
 	assert.Equal(t, "{\"error\":\"Key: 'Comment.Text' Error:Field validation for 'Text' failed on the 'required' tag\"}", w.Body.String())
 }

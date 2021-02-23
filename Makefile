@@ -16,7 +16,7 @@ test:
 	go test -v ./...
 
 coverage:
-	go test -coverprofile=coverage.txt -covermode=atomic
+	go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
 run: build
 	./doo

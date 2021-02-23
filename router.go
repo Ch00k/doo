@@ -69,7 +69,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		}
 	})
 
-	r.POST("/entries/:id/comment", func(c *gin.Context) {
+	r.POST("/entries/:id/comments", func(c *gin.Context) {
 		var comment Comment
 		var entry Entry
 		if err := c.ShouldBindJSON(&comment); err != nil {
