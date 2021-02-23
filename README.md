@@ -239,7 +239,7 @@ Date: Wed, 17 Feb 2021 18:13:49 GMT
 ### Add a comment to an entry
 
 ```
-$ http POST localhost:8080/entries/1/comment Text="Can't wait to taste it again!"
+$ http POST localhost:8080/entries/1/comments Text="Can't wait to taste it again!"
 HTTP/1.1 201 Created
 Content-Length: 111
 Content-Type: application/json; charset=utf-8
